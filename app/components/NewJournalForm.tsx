@@ -4,17 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Calendar, Smile } from "lucide-react";
-import { journalAPI } from "../../utils/api";
-import { DEMO_USER_ID } from "../../utils/constants";
+import { journalAPI } from "../utils/api";
+import { DEMO_USER_ID } from "../utils/constants";
 
-export default function NewJournalPage() {
+export default function NewJournalPageWithAPI() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // For demo purposes, using a hardcoded user ID
   // In a real app, this would come from authentication context
-  const userId = DEMO_USER_ID;
+  const userId = DEMO_USER_ID; 
+
   const moods = [
     { value: "excited", label: "Excited", emoji: "🤩", color: "bg-yellow-100 text-yellow-800" },
     { value: "productive", label: "Productive", emoji: "💪", color: "bg-green-100 text-green-800" },
@@ -37,6 +38,7 @@ export default function NewJournalPage() {
       const formData = new FormData(e.currentTarget);
       
       // Extract form data
+      const title = formData.get('title') as string;
       const content = formData.get('content') as string;
       const mood = formData.get('mood') as string;
       const energyLevel = parseInt(formData.get('energyLevel') as string) || 5;
@@ -58,17 +60,14 @@ export default function NewJournalPage() {
 
       const goals = formData.get('goals') as string;
 
-      if (!content || !mood) {
-        setError('Content and mood are required');
-        return;
-      }
-
       // Create journal entry via API
       const journalEntry = await journalAPI.createEntry({
+        userId,
         content,
         mood,
         energyLevel,
         tags,
+        title,
         weather,
         location,
         activities,
@@ -77,7 +76,7 @@ export default function NewJournalPage() {
 
       console.log('Journal entry created:', journalEntry);
       
-      // Redirect to journal list
+      // Redirect to journal list or show success message
       router.push('/journal');
       
     } catch (err: any) {
@@ -316,12 +315,6 @@ export default function NewJournalPage() {
           </Link>
           
           <div className="flex gap-3">
-            <button
-              type="button"
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Save as Draft
-            </button>
             <button
               type="submit"
               disabled={isLoading}

@@ -1,45 +1,166 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Calendar, TrendingUp, BarChart3, Download, Filter, Sparkles } from "lucide-react";
 import { colorPalette, getMoodColor } from "../utils/colors";
+import { dashboardAPI } from "../utils/api";
+import { DEMO_USER_ID } from "../utils/constants";
 
 export default function SummaryPage() {
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedTimeRange, setSelectedTimeRange] = useState("week");
+
+  useEffect(() => {
+    loadSummaryData();
+  }, [selectedTimeRange]);
+
+  const loadSummaryData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await dashboardAPI.getDashboard();
+      setDashboardData(data);
+    } catch (err: any) {
+      // If API fails, use mock data as fallback
+      console.warn('Summary API failed, using mock data:', err.message);
+      setDashboardData({
+        totalStats: {
+          journalEntries: 12,
+          reminders: 8,
+          summaries: 3
+        },
+        weeklyStats: {
+          journalEntries: 5,
+          reminders: 3
+        },
+        moodDistribution: [
+          { mood: "Productive", count: 8 },
+          { mood: "Focused", count: 6 },
+          { mood: "Motivated", count: 4 },
+          { mood: "Creative", count: 3 },
+          { mood: "Relaxed", count: 2 }
+        ],
+        dailyActivity: [
+          { date: "2025-01-24", journalEntries: 2, reminders: 1 },
+          { date: "2025-01-25", journalEntries: 1, reminders: 2 },
+          { date: "2025-01-26", journalEntries: 3, reminders: 1 },
+          { date: "2025-01-27", journalEntries: 2, reminders: 3 },
+          { date: "2025-01-28", journalEntries: 1, reminders: 1 },
+          { date: "2025-01-29", journalEntries: 2, reminders: 0 },
+          { date: "2025-01-30", journalEntries: 1, reminders: 0 }
+        ]
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const timeRanges = [
-    { label: "Last 7 Days", value: "week", active: true },
-    { label: "Last 30 Days", value: "month", active: false },
-    { label: "Last 3 Months", value: "quarter", active: false },
-    { label: "Last Year", value: "year", active: false }
+    { label: "Last 7 Days", value: "week", active: selectedTimeRange === "week" },
+    { label: "Last 30 Days", value: "month", active: selectedTimeRange === "month" },
+    { label: "Last 3 Months", value: "quarter", active: selectedTimeRange === "quarter" },
+    { label: "Last Year", value: "year", active: selectedTimeRange === "year" }
   ];
 
-  const weeklyStats = {
-    totalEntries: 12,
-    totalReminders: 8,
-    completedTasks: 15,
-    averageMood: "Productive"
+  // Get dynamic stats from API data
+  const getWeeklyStats = () => {
+    if (!dashboardData) {
+      return {
+        totalEntries: 0,
+        totalReminders: 0,
+        completedTasks: 0,
+        averageMood: "N/A"
+      };
+    }
+
+    const topMood = dashboardData.moodDistribution.length > 0 
+      ? dashboardData.moodDistribution[0].mood 
+      : "N/A";
+
+    return {
+      totalEntries: dashboardData.weeklyStats.journalEntries,
+      totalReminders: dashboardData.weeklyStats.reminders,
+      completedTasks: dashboardData.weeklyStats.journalEntries + dashboardData.weeklyStats.reminders,
+      averageMood: topMood
+    };
   };
 
-  const dailyActivity = [
-    { day: "Mon", entries: 2, reminders: 1, mood: "productive" },
-    { day: "Tue", entries: 1, reminders: 2, mood: "focused" },
-    { day: "Wed", entries: 3, reminders: 1, mood: "motivated" },
-    { day: "Thu", entries: 2, reminders: 3, mood: "productive" },
-    { day: "Fri", entries: 1, reminders: 1, mood: "relaxed" },
-    { day: "Sat", entries: 2, reminders: 0, mood: "creative" },
-    { day: "Sun", entries: 1, reminders: 0, mood: "reflective" }
-  ];
+  const getDailyActivity = () => {
+    if (!dashboardData || !dashboardData.dailyActivity) {
+      return [
+        { day: "Mon", entries: 0, reminders: 0, mood: "neutral" },
+        { day: "Tue", entries: 0, reminders: 0, mood: "neutral" },
+        { day: "Wed", entries: 0, reminders: 0, mood: "neutral" },
+        { day: "Thu", entries: 0, reminders: 0, mood: "neutral" },
+        { day: "Fri", entries: 0, reminders: 0, mood: "neutral" },
+        { day: "Sat", entries: 0, reminders: 0, mood: "neutral" },
+        { day: "Sun", entries: 0, reminders: 0, mood: "neutral" }
+      ];
+    }
 
+    // Convert API data to the format expected by the component
+    return dashboardData.dailyActivity.map((day: any, index: number) => {
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const dayOfWeek = new Date(day.date).getDay();
+      
+      return {
+        day: days[dayOfWeek],
+        entries: day.journalEntries,
+        reminders: day.reminders,
+        mood: "productive" // Default mood, could be enhanced
+      };
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  const weeklyStats = getWeeklyStats();
+  const dailyActivity = getDailyActivity();
+  
+  // Add icons to mood distribution data
+  const getMoodIcon = (mood: string) => {
+    const moodIcons: Record<string, string> = {
+      'Productive': '💪',
+      'productive': '💪',
+      'Focused': '🎯',
+      'focused': '🎯',
+      'Motivated': '⚡',
+      'motivated': '⚡',
+      'Creative': '🎨',
+      'creative': '🎨',
+      'Relaxed': '😌',
+      'relaxed': '😌',
+      'Excited': '🤩',
+      'excited': '🤩',
+      'Neutral': '😐',
+      'neutral': '😐',
+      'Tired': '😴',
+      'tired': '😴'
+    };
+    return moodIcons[mood] || '😊';
+  };
+
+  const moodDistribution = (dashboardData?.moodDistribution || []).map((mood: any) => ({
+    ...mood,
+    icon: getMoodIcon(mood.mood),
+    percentage: Math.round((mood.count / (dashboardData?.totalStats?.journalEntries || 1)) * 100)
+  }));
+  
+  // Mock top activities for now - this could be enhanced with API data
   const topActivities = [
-    { activity: "Daily Standup Meetings", count: 5, percentage: 25 },
-    { activity: "Code Review Sessions", count: 4, percentage: 20 },
-    { activity: "Project Planning", count: 3, percentage: 15 },
-    { activity: "Learning & Research", count: 2, percentage: 10 },
-    { activity: "Team Collaboration", count: 2, percentage: 10 }
-  ];
-
-  const moodDistribution = [
-    { mood: "Productive", count: 8, percentage: 35, icon: "💪" },
-    { mood: "Focused", count: 6, percentage: 26, icon: "🎯" },
-    { mood: "Motivated", count: 4, percentage: 17, icon: "⚡" },
-    { mood: "Creative", count: 3, percentage: 13, icon: "🎨" },
-    { mood: "Relaxed", count: 2, percentage: 9, icon: "😌" }
+    { activity: "Journal Writing", count: weeklyStats.totalEntries, percentage: 40 },
+    { activity: "Task Reminders", count: weeklyStats.totalReminders, percentage: 30 },
+    { activity: "Weekly Planning", count: 2, percentage: 15 },
+    { activity: "Progress Review", count: 1, percentage: 10 },
+    { activity: "Goal Setting", count: 1, percentage: 5 }
   ];
 
   return (
@@ -129,7 +250,7 @@ export default function SummaryPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Daily Activity</h3>
           <div className="space-y-4">
-            {dailyActivity.map((day) => (
+            {dailyActivity.map((day: any) => (
               <div key={day.day} className="flex items-center gap-4">
                 <div className="w-12 text-sm font-medium text-gray-600">{day.day}</div>
                 <div className="flex-1 flex gap-2">
@@ -183,7 +304,7 @@ export default function SummaryPage() {
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {moodDistribution.map((mood) => {
+          {moodDistribution.map((mood: any) => {
             const moodColor = getMoodColor(mood.mood);
             return (
               <div key={mood.mood} className="group relative">
@@ -229,7 +350,7 @@ export default function SummaryPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {moodDistribution.reduce((sum, mood) => sum + mood.count, 0)}
+                {moodDistribution.reduce((sum: number, mood: any) => sum + mood.count, 0)}
               </span>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Entries</p>
             </div>
@@ -241,7 +362,7 @@ export default function SummaryPage() {
             </div>
             <div>
               <span className="text-2xl font-bold text-blue-600">
-                {Math.round(moodDistribution.reduce((sum, mood) => sum + mood.count, 0) / 7)}
+                {Math.round(moodDistribution.reduce((sum: number, mood: any) => sum + mood.count, 0) / 7)}
               </span>
               <p className="text-sm text-gray-600 dark:text-gray-400">Daily Average</p>
             </div>

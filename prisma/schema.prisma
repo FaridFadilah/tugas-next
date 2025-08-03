@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid()) @db.Uuid
+  name           String?
+  email          String?        @unique
+  password       String?
+  createdAt      DateTime?      @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt      DateTime?      @default(now()) @map("updated_at") @db.Timestamp(6)
+  aiSummaries    AISummary[]
+  exportLogs     ExportLog[]
+  journalEntries JournalEntry[]
+  reminders      Reminder[]
+
+  @@map("users")
+}
+
+model JournalEntry {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String?     @map("user_id") @db.Uuid
+  content     String?
+  mood        String?
+  energyLevel Int?        @map("energy_level")
+  tags        String[]
+  createdAt   DateTime?   @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime?   @map("updated_at") @db.Timestamp(6)
+  exportLogs  ExportLog[]
+  user        User?       @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("journal_entries")
+}
+
+model AISummary {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String?   @map("user_id") @db.Uuid
+  weekStart DateTime? @map("week_start") @db.Date
+  weekEnd   DateTime? @map("week_end") @db.Date
+  summary   String?
+  aiModel   String?   @map("ai_model")
+  createdAt DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("ai_summaries")
+}
+
+model Reminder {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String?   @map("user_id") @db.Uuid
+  reminderType String?   @map("reminder_type")
+  sentAt       DateTime? @map("sent_at") @db.Timestamp(6)
+  via          String?
+  user         User?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("reminders")
+}
+
+model ExportLog {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String?       @map("user_id") @db.Uuid
+  entryId        String?       @map("entry_id") @db.Uuid
+  targetPlatform String?       @map("target_platform")
+  exportStatus   String?       @map("export_status")
+  exportAt       DateTime?     @map("export_at") @db.Timestamp(6)
+  journalEntry   JournalEntry? @relation(fields: [entryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("export_logs")
+}

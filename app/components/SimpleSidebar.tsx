@@ -23,7 +23,7 @@ export default function SimpleSidebar() {
       return pathname === "/";
     }
     return pathname.startsWith(href);
-  };
+  }
 
   const handleLogout = () => {
     logout();

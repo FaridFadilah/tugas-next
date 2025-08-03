@@ -1,42 +1,91 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { BookOpen, BarChart3, Clock, Plus, Calendar, TrendingUp, Sparkles, Activity } from "lucide-react";
 import { colorPalette, getActivityColor } from "./utils/colors";
+import { dashboardAPI } from "./utils/api";
+import { DEMO_USER_ID } from "./utils/constants";
 
 export default function Dashboard() {
-  const stats = [
-    { 
-      name: "Journal Entries", 
-      value: "12", 
-      icon: BookOpen, 
-      color: colorPalette.activities.journal,
-      trend: "+2 this week",
-      description: "Personal reflections"
-    },
-    { 
-      name: "Active Reminders", 
-      value: "5", 
-      icon: Clock, 
-      color: colorPalette.activities.reminder,
-      trend: "+1 today",
-      description: "Pending tasks"
-    },
-    { 
-      name: "Weekly Summary", 
-      value: "1", 
-      icon: BarChart3, 
-      color: colorPalette.activities.summary,
-      trend: "Updated",
-      description: "Progress report"
-    },
-    { 
-      name: "Days Tracked", 
-      value: "30", 
-      icon: Calendar, 
-      color: colorPalette.activities.tracking,
-      trend: "Consistent",
-      description: "Activity monitoring"
-    },
-  ];
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await dashboardAPI.getDashboard();
+      setDashboardData(data);
+    } catch (err: any) {
+      // If API fails, use mock data as fallback
+      console.warn('Dashboard API failed, using mock data:', err.message);
+      setDashboardData({
+        totalStats: {
+          journalEntries: 12,
+          reminders: 8,
+          summaries: 3
+        },
+        weeklyStats: {
+          journalEntries: 5,
+          reminders: 3
+        },
+        recentJournalEntries: [],
+        moodDistribution: [
+          { mood: "productive", count: 8 },
+          { mood: "focused", count: 6 },
+          { mood: "motivated", count: 4 }
+        ],
+        dailyActivity: []
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Dynamic stats based on API data
+  const getStats = () => {
+    if (!dashboardData) return [];
+    
+    return [
+      { 
+        name: "Journal Entries", 
+        value: dashboardData.totalStats.journalEntries.toString(), 
+        icon: BookOpen, 
+        color: colorPalette.activities.journal,
+        trend: `+${dashboardData.weeklyStats.journalEntries} this week`,
+        description: "Personal reflections"
+      },
+      { 
+        name: "Active Reminders", 
+        value: dashboardData.totalStats.reminders.toString(), 
+        icon: Clock, 
+        color: colorPalette.activities.reminder,
+        trend: `+${dashboardData.weeklyStats.reminders} this week`,
+        description: "Scheduled tasks"
+      },
+      { 
+        name: "AI Summaries", 
+        value: dashboardData.totalStats.summaries.toString(), 
+        icon: Sparkles, 
+        color: colorPalette.activities.summary,
+        trend: "Generated weekly",
+        description: "AI insights"
+      },
+      { 
+        name: "Weekly Activity", 
+        value: (dashboardData.weeklyStats.journalEntries + dashboardData.weeklyStats.reminders).toString(), 
+        icon: Activity, 
+        color: colorPalette.moods.productive,
+        trend: "Total this week",
+        description: "Combined actions"
+      }
+    ];
+  };
 
   const quickActions = [
     { 
@@ -65,29 +114,41 @@ export default function Dashboard() {
     },
   ];
 
-  const recentEntries = [
-    { 
-      title: "Daily Standup Meeting", 
-      date: "2025-01-30", 
+  // Generate recent entries from API data
+  const getRecentEntries = () => {
+    if (!dashboardData || !dashboardData.recentJournalEntries) {
+      return [
+        { 
+          title: "No recent entries", 
+          date: "Start creating journal entries", 
+          type: "journal",
+          color: colorPalette.activities.journal,
+          icon: "📝"
+        }
+      ];
+    }
+
+    return dashboardData.recentJournalEntries.map((entry: any) => ({
+      title: entry.content.substring(0, 50) + (entry.content.length > 50 ? '...' : ''),
+      date: new Date(entry.createdAt).toLocaleDateString(),
       type: "journal",
       color: colorPalette.activities.journal,
       icon: "📝"
-    },
-    { 
-      title: "Weekly Review", 
-      date: "2025-01-29", 
-      type: "summary",
-      color: colorPalette.activities.summary,
-      icon: "📊"
-    },
-    { 
-      title: "Doctor Appointment", 
-      date: "2025-01-28", 
-      type: "reminder",
-      color: colorPalette.activities.reminder,
-      icon: "⏰"
-    },
-  ];
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  const stats = getStats();
+  const recentEntries = getRecentEntries();
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -98,7 +159,7 @@ export default function Dashboard() {
 
       {/* Enhanced Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat) => (
+        {stats.map((stat: any) => (
           <div key={stat.name} className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:scale-105">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -190,7 +251,7 @@ export default function Dashboard() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
             <div className="p-6">
               <ul className="space-y-4">
-                {recentEntries.map((entry, index) => (
+                {recentEntries.map((entry: any, index: number) => (
                   <li key={index} className="group">
                     <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       {/* Icon */}
