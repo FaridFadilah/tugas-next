@@ -6,11 +6,22 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Calendar, Smile } from "lucide-react";
 import { journalAPI } from "../../utils/api";
 import { DEMO_USER_ID } from "../../utils/constants";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function NewJournalPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [energyLevel, setEnergyLevel] = useState([5]);
+  const [selectedWeather, setSelectedWeather] = useState<string>("");
   
   // For demo purposes, using a hardcoded user ID
   // In a real app, this would come from authentication context
@@ -39,9 +50,9 @@ export default function NewJournalPage() {
       // Extract form data
       const content = formData.get('content') as string;
       const mood = formData.get('mood') as string;
-      const energyLevel = parseInt(formData.get('energyLevel') as string) || 5;
+      const energyLevelValue = energyLevel[0];
       const tagsInput = formData.get('tags') as string;
-      const weather = formData.get('weather') as string;
+      const weather = selectedWeather;
       const location = formData.get('location') as string;
       
       // Parse tags
@@ -67,7 +78,7 @@ export default function NewJournalPage() {
       const journalEntry = await journalAPI.createEntry({
         content,
         mood,
-        energyLevel,
+        energyLevel: energyLevelValue,
         tags,
         weather,
         location,
@@ -103,233 +114,225 @@ export default function NewJournalPage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-600">{error}</p>
-        </div>
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Basic Information */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Basic Information</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Title *
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                placeholder="What did you do today?"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
-            
-            <div>
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
-                Date *
-              </label>
-              <div className="relative">
-                <Calendar className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  defaultValue={currentDate}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+            <CardDescription>Tell us about your journal entry</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  type="text"
+                  id="title"
+                  name="title"
+                  placeholder="What did you do today?"
                   required
                 />
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="date">Date *</Label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Input
+                    type="date"
+                    id="date"
+                    name="date"
+                    defaultValue={currentDate}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Content */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Content</h2>
-          
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-                Journal Entry *
-              </label>
-              <textarea
+        <Card>
+          <CardHeader>
+            <CardTitle>Content</CardTitle>
+            <CardDescription>Share your thoughts and activities</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="content">Journal Entry *</Label>
+              <Textarea
                 id="content"
                 name="content"
                 rows={12}
                 placeholder="Write about your day, what you accomplished, challenges you faced, things you learned, or anything else that's on your mind..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical"
+                className="resize-vertical"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Key Activities (Optional)
-              </label>
+            <div className="space-y-2">
+              <Label>Key Activities (Optional)</Label>
               <div className="space-y-2">
-                <input
+                <Input
                   type="text"
                   name="activity1"
                   placeholder="Activity 1"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <input
+                <Input
                   type="text"
                   name="activity2"
                   placeholder="Activity 2"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <input
+                <Input
                   type="text"
                   name="activity3"
                   placeholder="Activity 3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Goals for Tomorrow (Optional)
-              </label>
-              <textarea
+            <div className="space-y-2">
+              <Label htmlFor="goals">Goals for Tomorrow (Optional)</Label>
+              <Textarea
+                id="goals"
                 name="goals"
                 rows={3}
                 placeholder="What do you want to accomplish tomorrow?"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Mood Selection */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <Smile className="w-6 h-6" />
-            How are you feeling today? *
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {moods.map((mood) => (
-              <label key={mood.value} className="cursor-pointer">
-                <input
-                  type="radio"
-                  name="mood"
-                  value={mood.value}
-                  className="sr-only peer"
-                  required
-                />
-                <div className="flex flex-col items-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors peer-checked:border-blue-500 peer-checked:bg-blue-50">
-                  <span className="text-2xl mb-2">{mood.emoji}</span>
-                  <span className="text-sm font-medium text-gray-700">{mood.label}</span>
-                </div>
-              </label>
-            ))}
-          </div>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Smile className="w-5 h-5" />
+              How are you feeling today? *
+            </CardTitle>
+            <CardDescription>Select the mood that best describes how you feel</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {moods.map((mood) => (
+                <label key={mood.value} className="cursor-pointer">
+                  <input
+                    type="radio"
+                    name="mood"
+                    value={mood.value}
+                    className="sr-only peer"
+                    required
+                  />
+                  <div className="flex flex-col items-center p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors peer-checked:border-blue-500 peer-checked:bg-blue-50">
+                    <span className="text-2xl mb-2">{mood.emoji}</span>
+                    <span className="text-sm font-medium text-gray-700">{mood.label}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Energy Level */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Energy Level</h2>
-          <div>
-            <label htmlFor="energyLevel" className="block text-sm font-medium text-gray-700 mb-2">
-              Rate your energy level (1-10)
-            </label>
-            <input
-              type="range"
-              id="energyLevel"
-              name="energyLevel"
-              min="1"
-              max="10"
-              defaultValue="5"
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>Low (1)</span>
-              <span>High (10)</span>
+        <Card>
+          <CardHeader>
+            <CardTitle>Energy Level</CardTitle>
+            <CardDescription>Rate your energy level from 1 to 10</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <Label htmlFor="energyLevel">
+                Current Energy Level: {energyLevel[0]}
+              </Label>
+              <Slider
+                id="energyLevel"
+                min={1}
+                max={10}
+                step={1}
+                value={energyLevel}
+                onValueChange={setEnergyLevel}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Low (1)</span>
+                <span>High (10)</span>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Metadata */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Additional Information</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="weather" className="block text-sm font-medium text-gray-700 mb-2">
-                Weather (Optional)
-              </label>
-              <select
-                id="weather"
-                name="weather"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select weather</option>
-                <option value="sunny">☀️ Sunny</option>
-                <option value="cloudy">☁️ Cloudy</option>
-                <option value="rainy">🌧️ Rainy</option>
-                <option value="snowy">❄️ Snowy</option>
-                <option value="windy">💨 Windy</option>
-              </select>
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+            <CardDescription>Optional details about your day</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="weather">Weather (Optional)</Label>
+                <Select value={selectedWeather} onValueChange={setSelectedWeather}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select weather" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sunny">☀️ Sunny</SelectItem>
+                    <SelectItem value="cloudy">☁️ Cloudy</SelectItem>
+                    <SelectItem value="rainy">🌧️ Rainy</SelectItem>
+                    <SelectItem value="snowy">❄️ Snowy</SelectItem>
+                    <SelectItem value="windy">💨 Windy</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location (Optional)</Label>
+                <Input
+                  type="text"
+                  id="location"
+                  name="location"
+                  placeholder="Where were you today?"
+                />
+              </div>
             </div>
 
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-                Location (Optional)
-              </label>
-              <input
+            <div className="mt-6 space-y-2">
+              <Label htmlFor="tags">Tags (Optional)</Label>
+              <Input
                 type="text"
-                id="location"
-                name="location"
-                placeholder="Where were you today?"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                id="tags"
+                name="tags"
+                placeholder="Add tags separated by commas (e.g., work, meeting, coding)"
               />
             </div>
-          </div>
-
-          <div className="mt-6">
-            <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
-              Tags (Optional)
-            </label>
-            <input
-              type="text"
-              id="tags"
-              name="tags"
-              placeholder="Add tags separated by commas (e.g., work, meeting, coding)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Action Buttons */}
         <div className="flex justify-between items-center pt-6">
-          <Link
-            href="/journal"
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </Link>
+          <Button variant="outline" asChild>
+            <Link href="/journal">Cancel</Link>
+          </Button>
           
           <div className="flex gap-3">
-            <button
-              type="button"
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            >
+            <Button type="button" variant="secondary">
               Save as Draft
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isLoading}
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2"
             >
-              <Save className="w-5 h-5" />
+              <Save className="w-4 h-4" />
               {isLoading ? 'Saving...' : 'Save Entry'}
-            </button>
+            </Button>
           </div>
         </div>
       </form>

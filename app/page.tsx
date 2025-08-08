@@ -6,6 +6,11 @@ import { BookOpen, BarChart3, Clock, Plus, Calendar, TrendingUp, Sparkles, Activ
 import { colorPalette, getActivityColor } from "./utils/colors";
 import { dashboardAPI } from "./utils/api";
 import { DEMO_USER_ID } from "./utils/constants";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
@@ -140,9 +145,11 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
+        <Card>
+          <CardContent className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -160,34 +167,34 @@ export default function Dashboard() {
       {/* Enhanced Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat: any) => (
-          <div key={stat.name} className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:scale-105">
+          <Card key={stat.name} className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className={`w-full h-full ${stat.color.bg}`}></div>
             </div>
             
-            <div className="relative p-6">
+            <CardContent className="relative p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className={`${stat.color.light} dark:${stat.color.light}/20 p-3 rounded-lg ${stat.color.glow} shadow-md`}>
                   <stat.icon className={`w-6 h-6 ${stat.color.text}`} />
                 </div>
-                <span className={`text-xs px-2 py-1 ${stat.color.light} ${stat.color.text} rounded-full font-medium`}>
+                <Badge variant="secondary" className={`${stat.color.light} ${stat.color.text}`}>
                   {stat.trend}
-                </span>
+                </Badge>
               </div>
               
               <div className="space-y-1">
-                <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400">{stat.name}</h3>
-                <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-500">{stat.description}</p>
+                <h3 className="text-sm font-medium text-muted-foreground">{stat.name}</h3>
+                <p className="text-3xl font-bold">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.description}</p>
               </div>
               
               {/* Decorative element */}
               <div className="absolute top-0 right-0 w-20 h-20 opacity-10">
                 <div className={`w-full h-full ${stat.color.bg} rounded-full transform translate-x-6 -translate-y-6`}></div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
@@ -196,19 +203,15 @@ export default function Dashboard() {
         <div className="lg:col-span-2">
           <div className="flex items-center gap-2 mb-6">
             <Sparkles className="w-6 h-6 text-purple-600" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Quick Actions</h2>
+            <h2 className="text-2xl font-bold">Quick Actions</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {quickActions.map((action) => (
-              <Link
-                key={action.name}
-                href={action.href}
-                className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:scale-105"
-              >
+              <Card key={action.name} className="group relative overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105">
                 {/* Background Gradient */}
                 <div className={`absolute inset-0 ${action.bgPattern}`}></div>
                 
-                <div className="relative p-6">
+                <CardContent className="relative p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className={`${action.color.light} dark:${action.color.light}/20 p-3 rounded-lg ${action.color.glow} shadow-md group-hover:shadow-lg transition-shadow`}>
                       <action.icon className={`w-8 h-8 ${action.color.text} group-hover:scale-110 transition-transform`} />
@@ -219,25 +222,26 @@ export default function Dashboard() {
                   </div>
                   
                   <div className="space-y-2">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-gray-50">
+                    <h3 className="text-lg font-bold group-hover:text-gray-800 dark:group-hover:text-gray-50">
                       {action.name}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-muted-foreground">
                       {action.description}
                     </p>
                   </div>
                   
                   {/* Action indicator */}
                   <div className="mt-4 flex items-center justify-between">
-                    <span className={`text-xs px-2 py-1 ${action.color.light} ${action.color.text} rounded-full font-medium`}>
+                    <Badge variant="secondary" className={`${action.color.light} ${action.color.text}`}>
                       Ready
-                    </span>
+                    </Badge>
                     <div className={`w-6 h-6 ${action.color.bg} rounded-full flex items-center justify-center group-hover:scale-110 transition-transform`}>
                       <Plus className="w-3 h-3 text-white" />
                     </div>
                   </div>
-                </div>
-              </Link>
+                </CardContent>
+                <Link href={action.href} className="absolute inset-0" />
+              </Card>
             ))}
           </div>
         </div>
@@ -246,10 +250,10 @@ export default function Dashboard() {
         <div>
           <div className="flex items-center gap-2 mb-6">
             <Activity className="w-6 h-6 text-blue-600" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Activity</h2>
+            <h2 className="text-2xl font-bold">Recent Activity</h2>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="p-6">
+          <Card className="overflow-hidden">
+            <CardContent className="p-6">
               <ul className="space-y-4">
                 {recentEntries.map((entry: any, index: number) => (
                   <li key={index} className="group">
@@ -261,23 +265,23 @@ export default function Dashboard() {
                       
                       {/* Content */}
                       <div className="flex-1">
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-gray-50">
+                        <h4 className="text-sm font-semibold group-hover:text-gray-800 dark:group-hover:text-gray-50">
                           {entry.title}
                         </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                           {entry.date}
                         </p>
                       </div>
                       
                       {/* Type Badge */}
-                      <span className={`px-3 py-1 text-xs rounded-full font-medium ${entry.color.light} ${entry.color.text} ${entry.color.border} border`}>
+                      <Badge variant="outline" className={`${entry.color.light} ${entry.color.text}`}>
                         {entry.type}
-                      </span>
+                      </Badge>
                     </div>
                   </li>
                 ))}
               </ul>
-            </div>
+            </CardContent>
             
             {/* Footer */}
             <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900/20 border-t border-gray-200 dark:border-gray-700">
@@ -289,7 +293,7 @@ export default function Dashboard() {
                 <TrendingUp className="w-4 h-4" />
               </Link>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

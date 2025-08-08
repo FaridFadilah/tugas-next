@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { Plus, Clock, Bell, Calendar, Edit3, Trash2, Check } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
 
 export default function ReminderPage() {
   const reminders = [
@@ -80,77 +83,84 @@ export default function ReminderPage() {
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reminders</h1>
-          <p className="text-gray-600">Manage your scheduled reminders and notifications</p>
+          <h1 className="text-3xl font-bold mb-2">Reminders</h1>
+          <p className="text-muted-foreground">Manage your scheduled reminders and notifications</p>
         </div>
-        <Link
-          href="/reminder/new"
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          New Reminder
-        </Link>
+        <Button asChild className="bg-blue-600 hover:bg-blue-700">
+          <Link href="/reminder/new">
+            <Plus className="w-4 h-4 mr-2" />
+            New Reminder
+          </Link>
+        </Button>
       </div>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-blue-100 p-3 rounded-lg">
-              <Bell className="w-6 h-6 text-blue-600" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <Bell className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Active Reminders</p>
+                <p className="text-2xl font-bold">{reminders.filter(r => r.isActive).length}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Reminders</p>
-              <p className="text-2xl font-bold text-gray-900">{reminders.filter(r => r.isActive).length}</p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-green-100 p-3 rounded-lg">
-              <Clock className="w-6 h-6 text-green-600" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Clock className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Today's Reminders</p>
+                <p className="text-2xl font-bold">2</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">Today's Reminders</p>
-              <p className="text-2xl font-bold text-gray-900">2</p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-purple-100 p-3 rounded-lg">
-              <Calendar className="w-6 h-6 text-purple-600" />
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <Calendar className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">This Week</p>
+                <p className="text-2xl font-bold">5</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-600">This Week</p>
-              <p className="text-2xl font-bold text-gray-900">5</p>
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Upcoming Reminders */}
         <div className="lg:col-span-1">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Upcoming</h2>
+          <h2 className="text-xl font-semibold mb-4">Upcoming</h2>
           <div className="space-y-4">
             {upcomingReminders.map((reminder) => (
-              <div key={reminder.id} className="bg-white rounded-lg shadow p-4">
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg mt-1">
-                    <Bell className="w-4 h-4 text-blue-600" />
+              <Card key={reminder.id}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-blue-100 p-2 rounded-lg mt-1">
+                      <Bell className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-sm">{reminder.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">{reminder.time} • {reminder.date}</p>
+                      <Badge variant="outline" className={`mt-2 ${getPriorityColor(reminder.priority)}`}>
+                        {reminder.priority}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900 text-sm">{reminder.title}</h4>
-                    <p className="text-xs text-gray-600 mt-1">{reminder.time} • {reminder.date}</p>
-                    <span className={`inline-block px-2 py-1 text-xs rounded-full mt-2 ${getPriorityColor(reminder.priority)}`}>
-                      {reminder.priority}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -158,7 +168,7 @@ export default function ReminderPage() {
         {/* All Reminders */}
         <div className="lg:col-span-2">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">All Reminders</h2>
+            <h2 className="text-xl font-semibold">All Reminders</h2>
             <div className="flex gap-2">
               <select className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <option>All Status</option>
@@ -176,57 +186,61 @@ export default function ReminderPage() {
 
           <div className="space-y-4">
             {allReminders.map((reminder) => (
-              <div key={reminder.id} className={`bg-white rounded-lg shadow p-6 ${!reminder.isActive ? 'opacity-60' : ''}`}>
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">{reminder.title}</h3>
-                      {!reminder.isActive && (
-                        <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-full">
-                          Inactive
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-gray-600 mb-3">{reminder.description}</p>
-                    
-                    <div className="flex flex-wrap items-center gap-4 text-sm">
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <Clock className="w-4 h-4" />
-                        {reminder.time} • {reminder.date}
+              <Card key={reminder.id} className={`${!reminder.isActive ? 'opacity-60' : ''}`}>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold">{reminder.title}</h3>
+                        {!reminder.isActive && (
+                          <Badge variant="secondary">
+                            Inactive
+                          </Badge>
+                        )}
                       </div>
+                      <p className="text-muted-foreground mb-3">{reminder.description}</p>
                       
-                      {reminder.repeat !== 'None' && (
-                        <span className={`px-2 py-1 text-xs rounded-full ${getRepeatColor(reminder.repeat)}`}>
-                          {reminder.repeat}
-                        </span>
-                      )}
-                      
-                      <span className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(reminder.priority)}`}>
-                        {reminder.priority} priority
-                      </span>
+                      <div className="flex flex-wrap items-center gap-4 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-4 h-4" />
+                          {reminder.time} • {reminder.date}
+                        </div>
+                        
+                        {reminder.repeat !== 'None' && (
+                          <Badge variant="outline" className={`${getRepeatColor(reminder.repeat)}`}>
+                            {reminder.repeat}
+                          </Badge>
+                        )}
+                        
+                        <Badge variant="outline" className={`${getPriorityColor(reminder.priority)}`}>
+                          {reminder.priority} priority
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`${
+                          reminder.isActive 
+                            ? 'text-green-600 hover:bg-green-50' 
+                            : 'text-gray-400 hover:bg-gray-50'
+                        }`}
+                        title={reminder.isActive ? 'Mark as completed' : 'Activate reminder'}
+                      >
+                        <Check className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-blue-600 hover:bg-blue-50">
+                        <Edit3 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-600 hover:bg-red-50">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div className="flex gap-2">
-                    <button 
-                      className={`p-2 rounded-lg transition-colors ${
-                        reminder.isActive 
-                          ? 'text-green-600 hover:bg-green-50' 
-                          : 'text-gray-400 hover:bg-gray-50'
-                      }`}
-                      title={reminder.isActive ? 'Mark as completed' : 'Activate reminder'}
-                    >
-                      <Check className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                      <Edit3 className="w-4 h-4" />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -234,20 +248,21 @@ export default function ReminderPage() {
 
       {/* Empty State (if no reminders) */}
       {reminders.length === 0 && (
-        <div className="text-center py-12">
-          <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-            <Bell className="w-10 h-10 text-gray-400" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No reminders set</h3>
-          <p className="text-gray-600 mb-6">Create your first reminder to stay organized</p>
-          <Link
-            href="/reminder/new"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200 inline-flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Create your first reminder
-          </Link>
-        </div>
+        <Card>
+          <CardContent className="text-center py-12">
+            <div className="bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+              <Bell className="w-10 h-10 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">No reminders set</h3>
+            <p className="text-muted-foreground mb-6">Create your first reminder to stay organized</p>
+            <Button asChild>
+              <Link href="/reminder/new">
+                <Plus className="w-4 h-4 mr-2" />
+                Create your first reminder
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

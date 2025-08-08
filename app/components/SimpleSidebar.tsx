@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Calendar, BookOpen, Clock, BarChart3, Home, LogOut, User } from "lucide-react";
 import SafeThemeToggle from "./SafeThemeToggle";
-import { useAuth } from "../hooks/useAuth";
+import { useClientAuth } from "../hooks/userClientAuth";
 
 export default function SimpleSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout } = useClientAuth();
   
   const menuItems = [
     { name: "Dashboard", href: "/", icon: Home },
@@ -22,7 +22,7 @@ export default function SimpleSidebar() {
     if (href === "/") {
       return pathname === "/";
     }
-    return pathname.startsWith(href);
+    return pathname ? pathname.startsWith(href) : false;
   }
 
   const handleLogout = () => {
