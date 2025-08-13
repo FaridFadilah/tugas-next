@@ -1,20 +1,21 @@
 import { PrismaClient } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
+import { withAuth, AuthenticatedRequest } from "../../../lib/auth";
 
 const prisma = new PrismaClient();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   try {
     if (req.method === "GET") {
-      // Get all journal entries for a user
-      const { userId } = req.query;
+      // Get all journal entries for authenticated user
+      const userId = req.user?.userId;
       
       if (!userId) {
-        return res.status(400).json({ error: "User ID is required" });
+        return res.status(401).json({ error: "User not authenticated" });
       }
 
       const journalEntries = await prisma.journalEntry.findMany({
-        where: { userId: userId as string },
+        where: { userId },
         orderBy: { createdAt: 'desc' },
         include: {
           user: {
@@ -30,9 +31,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).json(journalEntries);
     } 
     else if (req.method === "POST") {
-      // Create a new journal entry
+      // Create a new journal entry for authenticated user
+      const userId = req.user?.userId;
+      
+      if (!userId) {
+        return res.status(401).json({ error: "User not authenticated" });
+      }
+
       const { 
-        userId, 
         content, 
         mood, 
         energyLevel, 
@@ -44,9 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         goals 
       } = req.body;
 
-      if (!userId || !content || !mood) {
+      if (!content || !mood) {
         return res.status(400).json({ 
-          error: "User ID, content, and mood are required" 
+          error: "Content and mood are required" 
         });
       }
 
@@ -96,3 +102,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.$disconnect();
   }
 }
+
+export default withAuth(handler);

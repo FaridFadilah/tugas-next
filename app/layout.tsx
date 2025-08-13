@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MinimalLayout from "./components/MinimalLayout";
 import { ThemeProvider } from "./components/ThemeProvider";
+import { StoreProvider } from "./store/StoreProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,11 +30,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 transition-colors`}
       >
-        <ThemeProvider
-          defaultTheme="system"
-          storageKey="activity-tracker-theme">
-          <MinimalLayout>{children}</MinimalLayout>
-        </ThemeProvider>
+        <StoreProvider>
+          <ThemeProvider
+            defaultTheme="system"
+            storageKey="activity-tracker-theme">
+            <MinimalLayout>{children}</MinimalLayout>
+          </ThemeProvider>
+        </StoreProvider>
       </body>
     </html>
   );

@@ -1,41 +1,55 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Search, Calendar, Edit3, Trash2 } from "lucide-react";
-import { journalAPI } from "../utils/api";
-import { DEMO_USER_ID } from "../utils/constants";
+import { Search, Plus, Edit3, Trash2, AlertCircle, Calendar, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { 
+  fetchJournalEntries, 
+  deleteJournalEntry,
+  clearError 
+} from "../store/slices/journalSlice";
 
 export default function JournalPage() {
-  const [journalEntries, setJournalEntries] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const { 
+    entries: journalEntries, 
+    isLoading, 
+    error 
+  } = useAppSelector(state => state.journal);
+  const { isAuthenticated, user } = useAppSelector(state => state.auth);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMood, setSelectedMood] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
   useEffect(() => {
-    loadJournalEntries();
-  }, []);
-
-  const loadJournalEntries = async () => {
-    try {
-      setIsLoading(true);
-      const entries = await journalAPI.getEntries();
-      setJournalEntries(entries);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load journal entries');
-    } finally {
-      setIsLoading(false);
+    if (isAuthenticated) {
+      dispatch(fetchJournalEntries());
     }
-  };
+  }, [dispatch, isAuthenticated]);
+
+  useEffect(() => {
+    if (error) {
+      // Error sudah ditangani di slice, kita bisa clear error setelah ditampilkan
+      const timer = setTimeout(() => {
+        dispatch(clearError());
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, dispatch]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this journal entry?')) {
@@ -43,59 +57,64 @@ export default function JournalPage() {
     }
 
     try {
-      await journalAPI.deleteEntry(id);
-      setJournalEntries(entries => entries.filter(entry => entry.id !== id));
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete journal entry');
+      await dispatch(deleteJournalEntry(id));
+    } catch (err) {
+      console.error('Failed to delete entry:', err);
     }
   };
 
   // Filter entries based on search term, mood, and date
-  const filteredEntries = journalEntries.filter(entry => {
+  const filteredEntries = journalEntries.filter((entry: any) => {
     const matchesSearch = entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         entry.tags.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+                         entry.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesMood = !selectedMood || entry.mood === selectedMood;
     const matchesDate = !selectedDate || entry.createdAt.split('T')[0] === selectedDate;
     
     return matchesSearch && matchesMood && matchesDate;
   });
+
   const getMoodColor = (mood: string) => {
     switch (mood) {
-      case 'productive': return 'bg-green-100 text-green-800';
-      case 'motivated': return 'bg-blue-100 text-blue-800';
-      case 'focused': return 'bg-purple-100 text-purple-800';
+      case 'happy': return 'bg-green-100 text-green-800';
+      case 'productive': return 'bg-blue-100 text-blue-800';
+      case 'motivated': return 'bg-purple-100 text-purple-800';
+      case 'focused': return 'bg-indigo-100 text-indigo-800';
+      case 'excited': return 'bg-yellow-100 text-yellow-800';
+      case 'sad': return 'bg-red-100 text-red-800';
+      case 'anxious': return 'bg-orange-100 text-orange-800';
+      case 'neutral': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  if (isLoading) {
+  if (!isAuthenticated) {
     return (
       <div className="max-w-6xl mx-auto">
         <Card>
-          <CardContent className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <CardContent className="text-center py-12">
+            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
+            <p className="text-gray-600 mb-6">Please login to access your journal entries</p>
+            <Button asChild>
+              <Link href="/auth/login">Login</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (error) {
+  if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="flex items-center justify-between">
-            <span>{error}</span>
-            <Button 
-              onClick={loadJournalEntries}
-              size="sm"
-              variant="outline"
-            >
-              Retry
-            </Button>
-          </AlertDescription>
-        </Alert>
+        <Card>
+          <CardContent className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
+              <p className="text-gray-600">Loading your journal entries...</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -105,7 +124,10 @@ export default function JournalPage() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Journal</h1>
-          <p className="text-gray-600">Track your daily activities and thoughts</p>
+          <p className="text-gray-600">
+            Track your daily activities and thoughts
+            {user && <span className="ml-2 text-sm">• Welcome, {user.fullName}</span>}
+          </p>
         </div>
         <Button asChild>
           <Link href="/journal/new" className="flex items-center gap-2">
@@ -114,6 +136,23 @@ export default function JournalPage() {
           </Link>
         </Button>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button 
+              onClick={() => dispatch(fetchJournalEntries())}
+              size="sm"
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Search and Filter */}
       <Card className="mb-6">
@@ -136,14 +175,14 @@ export default function JournalPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">All Moods</SelectItem>
+                  <SelectItem value="happy">Happy</SelectItem>
                   <SelectItem value="productive">Productive</SelectItem>
                   <SelectItem value="motivated">Motivated</SelectItem>
                   <SelectItem value="focused">Focused</SelectItem>
-                  <SelectItem value="creative">Creative</SelectItem>
-                  <SelectItem value="relaxed">Relaxed</SelectItem>
                   <SelectItem value="excited">Excited</SelectItem>
                   <SelectItem value="neutral">Neutral</SelectItem>
-                  <SelectItem value="tired">Tired</SelectItem>
+                  <SelectItem value="sad">Sad</SelectItem>
+                  <SelectItem value="anxious">Anxious</SelectItem>
                 </SelectContent>
               </Select>
               <Input
@@ -159,44 +198,45 @@ export default function JournalPage() {
 
       {/* Journal Entries */}
       <div className="space-y-6">
-        {filteredEntries.map((entry) => (
+        {filteredEntries.map((entry: any) => (
           <Card key={entry.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <CardTitle className="text-xl">
-                    {entry.title || 'Journal Entry'}
-                  </CardTitle>
-                  <CardDescription className="flex items-center gap-4 mt-2">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(entry.createdAt).toLocaleDateString()}
-                    </div>
-                    <Badge variant="secondary" className={getMoodColor(entry.mood)}>
+                  <div className="flex items-center gap-3 mb-2">
+                    <Badge className={getMoodColor(entry.mood)}>
                       {entry.mood}
                     </Badge>
-                    {entry.energyLevel && (
-                      <span className="text-xs text-muted-foreground">
-                        Energy: {entry.energyLevel}/10
-                      </span>
-                    )}
-                  </CardDescription>
+                    <div className="flex items-center text-sm text-gray-500">
+                      <Calendar className="w-4 h-4 mr-1" />
+                      {new Date(entry.createdAt).toLocaleDateString('id-ID', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </div>
+                  </div>
+                  {entry.title && (
+                    <CardTitle className="text-lg mb-2">{entry.title}</CardTitle>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
                     asChild
+                    className="text-gray-400 hover:text-blue-600"
                   >
                     <Link href={`/journal/${entry.id}`}>
                       <Edit3 className="w-4 h-4" />
                     </Link>
                   </Button>
-                  <Button 
+                  <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(entry.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-gray-400 hover:text-red-600"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -213,12 +253,8 @@ export default function JournalPage() {
               {entry.tags && entry.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {entry.tags.map((tag: string, index: number) => (
-                    <Badge 
-                      key={index}
-                      variant="outline"
-                      className="text-xs"
-                    >
-                      #{tag}
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {tag}
                     </Badge>
                   ))}
                 </div>

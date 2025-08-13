@@ -1,10 +1,14 @@
 // API utility functions for the journal app
+import { store, RootState } from '../store/store';
+import { addNotification } from '../store/slices/uiSlice';
+import { clearCredentials } from '../store/slices/authSlice';
 
 const API_BASE_URL = '/api';
 
 // Helper function to get auth headers
 function getAuthHeaders() {
-  const token = localStorage.getItem('authToken');
+  const state = store.getState() as RootState;
+  const token = state.auth.token || localStorage.getItem('authToken');
   return {
     'Content-Type': 'application/json',
     ...(token && { 'Authorization': `Bearer ${token}` })
@@ -15,14 +19,24 @@ function getAuthHeaders() {
 async function handleResponse(response: Response) {
   if (!response.ok) {
     if (response.status === 401) {
-      // Token expired or invalid, redirect to login
+      // Token expired or invalid, clear auth and redirect to login
+      store.dispatch(clearCredentials());
+      store.dispatch(addNotification({
+        type: 'error',
+        message: 'Session expired. Please login again.'
+      }));
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/auth/login';
       return;
     }
     const error = await response.json();
-    throw new Error(error.error || 'Something went wrong');
+    const errorMessage = error.error || 'Something went wrong';
+    store.dispatch(addNotification({
+      type: 'error',
+      message: errorMessage
+    }));
+    throw new Error(errorMessage);
   }
   return response.json();
 }

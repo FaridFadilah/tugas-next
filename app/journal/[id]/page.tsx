@@ -1,5 +1,20 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Edit3, Trash2, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Share2, Edit3, Trash2, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { 
+  fetchJournalEntry, 
+  deleteJournalEntry,
+  setCurrentEntry,
+  clearError 
+} from "../../store/slices/journalSlice";
+import { useRouter } from "next/navigation";
 
 interface Props {
   params: {
@@ -8,54 +23,58 @@ interface Props {
 }
 
 export default function JournalDetailPage({ params }: Props) {
-  // Mock data - in real app this would be fetched based on params.id
-  const journalEntry = {
-    id: params.id,
-    title: "Daily Standup Meeting",
-    date: "2025-01-30",
-    time: "09:15",
-    content: `Today's standup was particularly productive. We discussed the progress on the new feature development and identified some key blockers that need attention.
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { 
+    currentEntry: journalEntry, 
+    isLoading, 
+    error 
+  } = useAppSelector(state => state.journal);
+  const { isAuthenticated } = useAppSelector(state => state.auth);
 
-**Key Points Discussed:**
-- User authentication flow is 80% complete
-- Database optimization needs review
-- API endpoint testing scheduled for tomorrow
-- UI/UX feedback session planned for Friday
+  useEffect(() => {
+    if (isAuthenticated && params.id) {
+      dispatch(fetchJournalEntry(params.id));
+    }
 
-**Challenges Faced:**
-I struggled a bit with the complex database queries today. The performance wasn't as good as expected, and I need to revisit the indexing strategy. Also, the integration tests are taking longer than anticipated.
+    // Cleanup function to clear current entry when component unmounts
+    return () => {
+      dispatch(setCurrentEntry(null));
+    };
+  }, [dispatch, params.id, isAuthenticated]);
 
-**Accomplishments:**
-- Fixed 3 critical bugs in the authentication system
-- Completed code review for 2 pull requests
-- Updated project documentation
-- Mentored junior developer on React best practices
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        dispatch(clearError());
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error, dispatch]);
 
-**Lessons Learned:**
-The importance of early performance testing became clear today. Also learned a new debugging technique that will be useful for future projects.
+  const handleDelete = async () => {
+    if (!journalEntry || !confirm('Are you sure you want to delete this journal entry?')) {
+      return;
+    }
 
-**Tomorrow's Goals:**
-- Optimize database queries
-- Complete API endpoint testing
-- Review UI/UX feedback
-- Plan sprint retrospective`,
-    mood: "productive",
-    weather: "sunny",
-    location: "Office",
-    tags: ["work", "meeting", "development", "team"],
-    activities: [
-      "Daily standup meeting",
-      "Code review session", 
-      "Bug fixing",
-      "Documentation update"
-    ]
+    try {
+      await dispatch(deleteJournalEntry(journalEntry.id));
+      router.push('/journal');
+    } catch (err) {
+      console.error('Failed to delete entry:', err);
+    }
   };
 
   const getMoodColor = (mood: string) => {
     switch (mood) {
-      case 'productive': return 'bg-green-100 text-green-800';
-      case 'motivated': return 'bg-blue-100 text-blue-800';
-      case 'focused': return 'bg-purple-100 text-purple-800';
+      case 'happy': return 'bg-green-100 text-green-800';
+      case 'productive': return 'bg-blue-100 text-blue-800';
+      case 'motivated': return 'bg-purple-100 text-purple-800';
+      case 'focused': return 'bg-indigo-100 text-indigo-800';
+      case 'excited': return 'bg-yellow-100 text-yellow-800';
+      case 'sad': return 'bg-red-100 text-red-800';
+      case 'anxious': return 'bg-orange-100 text-orange-800';
+      case 'neutral': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -71,6 +90,77 @@ The importance of early performance testing became clear today. Also learned a n
     }
   };
 
+  if (!isAuthenticated) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardContent className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Authentication Required</h3>
+            <p className="text-gray-600 mb-6">Please login to view journal entries</p>
+            <Button asChild>
+              <Link href="/auth/login">Login</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardContent className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
+              <p className="text-gray-600">Loading journal entry...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Alert variant="destructive">
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => dispatch(fetchJournalEntry(params.id))}
+                size="sm"
+                variant="outline"
+              >
+                Retry
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/journal">Back to Journal</Link>
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!journalEntry) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardContent className="text-center py-12">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Journal Entry Not Found</h3>
+            <p className="text-gray-600 mb-6">The journal entry you're looking for doesn't exist or has been deleted.</p>
+            <Button asChild>
+              <Link href="/journal">Back to Journal</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-8">
@@ -82,15 +172,25 @@ The importance of early performance testing became clear today. Also learned a n
             <ArrowLeft className="w-6 h-6" />
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{journalEntry.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {journalEntry.title || 'Journal Entry'}
+            </h1>
             <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {journalEntry.date} at {journalEntry.time}
+                {new Date(journalEntry.createdAt).toLocaleDateString('id-ID', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })} at {new Date(journalEntry.createdAt).toLocaleTimeString('id-ID', {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs ${getMoodColor(journalEntry.mood)}`}>
+              <Badge className={getMoodColor(journalEntry.mood)}>
                 {journalEntry.mood}
-              </span>
+              </Badge>
             </div>
           </div>
         </div>
@@ -105,7 +205,10 @@ The importance of early performance testing became clear today. Also learned a n
           >
             <Edit3 className="w-5 h-5" />
           </Link>
-          <button className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+          <button 
+            onClick={handleDelete}
+            className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+          >
             <Trash2 className="w-5 h-5" />
           </button>
         </div>
@@ -122,15 +225,15 @@ The importance of early performance testing became clear today. Also learned a n
                 if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
                   return (
                     <h3 key={index} className="text-lg font-semibold text-gray-900 mt-6 mb-3">
-                      {paragraph.replace(/\*\*/g, '')}
+                      {paragraph.slice(2, -2)}
                     </h3>
                   );
                 }
                 if (paragraph.startsWith('- ')) {
                   return (
-                    <li key={index} className="text-gray-700 ml-4">
-                      {paragraph.substring(2)}
-                    </li>
+                    <ul key={index} className="list-disc list-inside ml-4 mb-2">
+                      <li className="text-gray-700">{paragraph.slice(2)}</li>
+                    </ul>
                   );
                 }
                 return (
@@ -152,7 +255,7 @@ The importance of early performance testing became clear today. Also learned a n
               {journalEntry.weather && (
                 <div className="flex items-center gap-3">
                   <span className="text-gray-500 text-sm w-16">Weather:</span>
-                  <span className="text-sm text-gray-700">
+                  <span className="text-gray-900 text-sm flex items-center gap-1">
                     {getWeatherIcon(journalEntry.weather)} {journalEntry.weather}
                   </span>
                 </div>
@@ -160,17 +263,25 @@ The importance of early performance testing became clear today. Also learned a n
               
               {journalEntry.location && (
                 <div className="flex items-center gap-3">
+                  <MapPin className="w-4 h-4 text-gray-400" />
                   <span className="text-gray-500 text-sm w-16">Location:</span>
-                  <span className="text-sm text-gray-700">{journalEntry.location}</span>
+                  <span className="text-gray-900 text-sm">{journalEntry.location}</span>
                 </div>
               )}
               
               <div className="flex items-center gap-3">
                 <span className="text-gray-500 text-sm w-16">Mood:</span>
-                <span className={`px-2 py-1 text-xs rounded-full ${getMoodColor(journalEntry.mood)}`}>
+                <Badge className={getMoodColor(journalEntry.mood)}>
                   {journalEntry.mood}
-                </span>
+                </Badge>
               </div>
+
+              {journalEntry.energyLevel && (
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-500 text-sm w-16">Energy:</span>
+                  <span className="text-gray-900 text-sm">{journalEntry.energyLevel}/10</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -179,9 +290,9 @@ The importance of early performance testing became clear today. Also learned a n
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Activities</h3>
               <ul className="space-y-2">
-                {journalEntry.activities.map((activity, index) => (
-                  <li key={index} className="text-sm text-gray-700 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                {journalEntry.activities.map((activity: string, index: number) => (
+                  <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
                     {activity}
                   </li>
                 ))}
@@ -194,15 +305,20 @@ The importance of early performance testing became clear today. Also learned a n
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {journalEntry.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
-                  >
-                    #{tag}
-                  </span>
+                {journalEntry.tags.map((tag: string, index: number) => (
+                  <Badge key={index} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Goals */}
+          {journalEntry.goals && (
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Goals</h3>
+              <p className="text-sm text-gray-700">{journalEntry.goals}</p>
             </div>
           )}
 
@@ -210,18 +326,16 @@ The importance of early performance testing became clear today. Also learned a n
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Navigation</h3>
             <div className="space-y-2">
-              <Link
-                href="/journal/2"
-                className="block text-sm text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                ← Previous Entry
-              </Link>
-              <Link
-                href="/journal/4"
-                className="block text-sm text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Next Entry →
-              </Link>
+              <Button variant="outline" asChild className="w-full justify-start">
+                <Link href="/journal">
+                  ← Back to Journal
+                </Link>
+              </Button>
+              <Button variant="outline" asChild className="w-full justify-start">
+                <Link href={`/journal/${journalEntry.id}/edit`}>
+                  Edit This Entry
+                </Link>
+              </Button>
             </div>
           </div>
         </div>

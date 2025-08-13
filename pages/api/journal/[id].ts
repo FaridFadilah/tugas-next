@@ -1,10 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
+import { withAuth, AuthenticatedRequest } from "../../../lib/auth";
 
 const prisma = new PrismaClient();
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
   const { id } = req.query;
+  const userId = req.user?.userId;
+
+  if (!userId) {
+    return res.status(401).json({ error: "User not authenticated" });
+  }
 
   if (!id || typeof id !== 'string') {
     return res.status(400).json({ error: "Valid journal entry ID is required" });
@@ -12,9 +18,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     if (req.method === "GET") {
-      // Get a specific journal entry
-      const journalEntry = await prisma.journalEntry.findUnique({
-        where: { id },
+      // Get a specific journal entry (only if it belongs to the authenticated user)
+      const journalEntry = await prisma.journalEntry.findFirst({
+        where: { 
+          id,
+          userId // Ensure user can only access their own entries
+        },
         include: {
           user: {
             select: {
@@ -33,13 +42,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).json(journalEntry);
     } 
     else if (req.method === "PUT") {
-      // Update a journal entry
+      // Update a journal entry (only if it belongs to the authenticated user)
       const { 
         content, 
         mood, 
         energyLevel, 
         tags 
       } = req.body;
+
+      // Check if the entry belongs to the authenticated user
+      const existingEntry = await prisma.journalEntry.findFirst({
+        where: { id, userId }
+      });
+
+      if (!existingEntry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
 
       // Parse tags if it's a string
       let parsedTags = tags;
@@ -70,7 +88,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).json(updatedEntry);
     } 
     else if (req.method === "DELETE") {
-      // Delete a journal entry
+      // Delete a journal entry (only if it belongs to the authenticated user)
+      const existingEntry = await prisma.journalEntry.findFirst({
+        where: { id, userId }
+      });
+
+      if (!existingEntry) {
+        return res.status(404).json({ error: "Journal entry not found" });
+      }
+
       await prisma.journalEntry.delete({
         where: { id }
       });
@@ -91,3 +117,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.$disconnect();
   }
 }
+
+export default withAuth(handler);
