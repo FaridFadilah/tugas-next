@@ -12,7 +12,27 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+        // Ignore these action types
+        ignoredActions: [
+          'persist/PERSIST', 
+          'persist/REHYDRATE',
+          'auth/checkAuthStatus/fulfilled',
+          'auth/loginUser/fulfilled',
+          'auth/registerUser/fulfilled'
+        ],
+        // Ignore these paths in the state
+        ignoredPaths: [
+          'auth.user.createdAt',
+          'auth.user.updatedAt',
+          'journal.entries',
+          'journal.currentEntry'
+        ],
+        // Ignore these field names
+        ignoredActionsPaths: [
+          'payload.timestamp',
+          'payload.createdAt',
+          'payload.updatedAt'
+        ]
       },
     }),
 });

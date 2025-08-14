@@ -42,9 +42,13 @@ export const loginUser = createAsyncThunk(
 
       const data = await response.json();
       
-      // Store in localStorage for persistence
+      // Store in both localStorage and cookies for compatibility
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      
+      // Also store in cookies for server-side compatibility
+      document.cookie = `authToken=${encodeURIComponent(data.token)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+      document.cookie = `userData=${encodeURIComponent(JSON.stringify(data.user))}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       
       return data;
     } catch (error) {
@@ -84,23 +88,70 @@ export const registerUser = createAsyncThunk(
 
 // Async thunk for logout
 export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
+  // Clear localStorage
   localStorage.removeItem('authToken');
   localStorage.removeItem('user');
+  
+  // Clear cookies
+  document.cookie = 'authToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  document.cookie = 'userData=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  
   return null;
 });
 
 // Async thunk for checking existing auth
 export const checkAuthStatus = createAsyncThunk('auth/checkAuthStatus', async () => {
-  const token = localStorage.getItem('authToken');
-  const userData = localStorage.getItem('user');
+  console.log('[CHECK AUTH STATUS] Starting...');
   
-  if (token && userData) {
-    return {
-      token,
-      user: JSON.parse(userData),
-    };
+  // First try localStorage
+  let token = localStorage.getItem('authToken');
+  let userData = localStorage.getItem('user');
+  
+  console.log('[CHECK AUTH STATUS] localStorage - token:', !!token, 'userData:', !!userData);
+  
+  // If not in localStorage, try cookies
+  if (!token || !userData) {
+    console.log('[CHECK AUTH STATUS] Not found in localStorage, checking cookies...');
+    
+    // Get cookies
+    const cookies = document.cookie.split(';').reduce((acc, cookie) => {
+      const [name, value] = cookie.trim().split('=');
+      if (name && value) {
+        acc[name] = decodeURIComponent(value);
+      }
+      return acc;
+    }, {} as Record<string, string>);
+    
+    console.log('[CHECK AUTH STATUS] Available cookies:', Object.keys(cookies));
+    
+    token = cookies['authToken'];
+    userData = cookies['userData'];
+    
+    console.log('[CHECK AUTH STATUS] cookies - token:', !!token, 'userData:', !!userData);
+    
+    // If found in cookies, sync to localStorage for consistency
+    if (token && userData) {
+      console.log('[CHECK AUTH STATUS] Syncing cookies to localStorage...');
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', userData);
+    }
   }
   
+  if (token && userData) {
+    try {
+      const parsedUser = JSON.parse(userData);
+      console.log('[CHECK AUTH STATUS] Success - returning auth data');
+      return {
+        token,
+        user: parsedUser,
+      };
+    } catch (error) {
+      console.error('[CHECK AUTH STATUS] Failed to parse user data:', error);
+      return null;
+    }
+  }
+  
+  console.log('[CHECK AUTH STATUS] No auth data found');
   return null;
 });
 

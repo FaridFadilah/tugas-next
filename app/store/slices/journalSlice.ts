@@ -69,7 +69,28 @@ export const fetchJournalEntries = createAsyncThunk(
       }
 
       const data = await response.json();
-      return data.entries || data;
+      
+      // Ensure data is serializable array
+      const entries = Array.isArray(data) ? data : (data.entries || []);
+      
+      // Clean data to ensure serializability
+      const cleanEntries = entries.map((entry: any) => ({
+        id: entry.id,
+        title: entry.title || null,
+        content: entry.content || '',
+        mood: entry.mood || 'neutral',
+        energyLevel: entry.energyLevel || 5,
+        tags: Array.isArray(entry.tags) ? entry.tags : [],
+        weather: entry.weather || null,
+        location: entry.location || null,
+        activities: Array.isArray(entry.activities) ? entry.activities : [],
+        goals: entry.goals || null,
+        createdAt: entry.createdAt || new Date().toISOString(),
+        updatedAt: entry.updatedAt || new Date().toISOString(),
+        userId: entry.userId
+      }));
+      
+      return cleanEntries;
     } catch (error) {
       return rejectWithValue('Network error occurred');
     }
@@ -90,7 +111,26 @@ export const fetchJournalEntry = createAsyncThunk(
         return rejectWithValue(error.error || 'Failed to fetch entry');
       }
 
-      return await response.json();
+      const data = await response.json();
+      
+      // Clean single entry data for serializability
+      const cleanEntry = {
+        id: data.id,
+        title: data.title || null,
+        content: data.content || '',
+        mood: data.mood || 'neutral',
+        energyLevel: data.energyLevel || 5,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        weather: data.weather || null,
+        location: data.location || null,
+        activities: Array.isArray(data.activities) ? data.activities : [],
+        goals: data.goals || null,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        userId: data.userId
+      };
+      
+      return cleanEntry;
     } catch (error) {
       return rejectWithValue('Network error occurred');
     }
@@ -113,7 +153,26 @@ export const createJournalEntry = createAsyncThunk(
         return rejectWithValue(error.error || 'Failed to create entry');
       }
 
-      return await response.json();
+      const data = await response.json();
+      
+      // Clean created entry data for serializability
+      const cleanEntry = {
+        id: data.id,
+        title: data.title || null,
+        content: data.content || '',
+        mood: data.mood || 'neutral',
+        energyLevel: data.energyLevel || 5,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        weather: data.weather || null,
+        location: data.location || null,
+        activities: Array.isArray(data.activities) ? data.activities : [],
+        goals: data.goals || null,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        userId: data.userId
+      };
+      
+      return cleanEntry;
     } catch (error) {
       return rejectWithValue('Network error occurred');
     }
@@ -136,7 +195,26 @@ export const updateJournalEntry = createAsyncThunk(
         return rejectWithValue(error.error || 'Failed to update entry');
       }
 
-      return await response.json();
+      const data = await response.json();
+      
+      // Clean updated entry data for serializability
+      const cleanEntry = {
+        id: data.id,
+        title: data.title || null,
+        content: data.content || '',
+        mood: data.mood || 'neutral',
+        energyLevel: data.energyLevel || 5,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        weather: data.weather || null,
+        location: data.location || null,
+        activities: Array.isArray(data.activities) ? data.activities : [],
+        goals: data.goals || null,
+        createdAt: data.createdAt || new Date().toISOString(),
+        updatedAt: data.updatedAt || new Date().toISOString(),
+        userId: data.userId
+      };
+      
+      return cleanEntry;
     } catch (error) {
       return rejectWithValue('Network error occurred');
     }

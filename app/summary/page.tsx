@@ -17,7 +17,7 @@ export default function SummaryPage() {
 
   useEffect(() => {
     loadSummaryData();
-  }, [selectedTimeRange]);
+  }, []);
 
   const loadSummaryData = async () => {
     try {
@@ -167,6 +167,8 @@ export default function SummaryPage() {
     { activity: "Progress Review", count: 1, percentage: 10 },
     { activity: "Goal Setting", count: 1, percentage: 5 }
   ];
+
+  console.log(moodDistribution)
 
   return (
     <div className="max-w-7xl mx-auto">

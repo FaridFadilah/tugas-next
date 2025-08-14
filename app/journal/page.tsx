@@ -32,7 +32,7 @@ export default function JournalPage() {
   const { isAuthenticated, user } = useAppSelector(state => state.auth);
   
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMood, setSelectedMood] = useState("");
+  const [selectedMood, setSelectedMood] = useState("all");
   const [selectedDate, setSelectedDate] = useState("");
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function JournalPage() {
   const filteredEntries = journalEntries.filter((entry: any) => {
     const matchesSearch = entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          entry.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesMood = !selectedMood || entry.mood === selectedMood;
+    const matchesMood = !selectedMood || selectedMood === "all" || entry.mood === selectedMood;
     const matchesDate = !selectedDate || entry.createdAt.split('T')[0] === selectedDate;
     
     return matchesSearch && matchesMood && matchesDate;
@@ -86,6 +86,8 @@ export default function JournalPage() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  console.log(isAuthenticated)
 
   if (!isAuthenticated) {
     return (
@@ -174,7 +176,7 @@ export default function JournalPage() {
                   <SelectValue placeholder="All Moods" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Moods</SelectItem>
+                  <SelectItem value="all">All Moods</SelectItem>
                   <SelectItem value="happy">Happy</SelectItem>
                   <SelectItem value="productive">Productive</SelectItem>
                   <SelectItem value="motivated">Motivated</SelectItem>

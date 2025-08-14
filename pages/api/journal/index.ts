@@ -28,7 +28,20 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         }
       });
 
-      res.status(200).json(journalEntries);
+      // Ensure serializable response
+      const serializedEntries = journalEntries.map(entry => ({
+        id: entry.id,
+        content: entry.content,
+        mood: entry.mood,
+        energyLevel: entry.energyLevel,
+        tags: entry.tags,
+        createdAt: entry.createdAt?.toISOString() || new Date().toISOString(),
+        updatedAt: entry.updatedAt?.toISOString() || new Date().toISOString(),
+        userId: entry.userId,
+        user: entry.user
+      }));
+
+      res.status(200).json(serializedEntries);
     } 
     else if (req.method === "POST") {
       // Create a new journal entry for authenticated user

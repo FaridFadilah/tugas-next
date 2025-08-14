@@ -15,8 +15,12 @@ function AuthInitializer({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    console.log('[AUTH INITIALIZER] Starting auth check...');
+    
     // Check for existing authentication on app start
-    dispatch(checkAuthStatus());
+    dispatch(checkAuthStatus()).then((result) => {
+      console.log('[AUTH INITIALIZER] checkAuthStatus result:', result);
+    });
   }, [dispatch]);
 
   return <>{children}</>;
