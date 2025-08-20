@@ -72,6 +72,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(400).json({ error: "Current password is required" });
         }
 
+        // Ensure stored password hash exists before comparing
+        if (!user.password) {
+          return res.status(400).json({ error: "Current password is not set" });
+        }
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
         if (!isCurrentPasswordValid) {
           return res.status(400).json({ error: "Current password is incorrect" });

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { withAuth, AuthenticatedRequest } from "../../../lib/auth";
 
 const prisma = new PrismaClient();

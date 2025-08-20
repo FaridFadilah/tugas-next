@@ -91,7 +91,7 @@ export const fetchJournalEntries = createAsyncThunk(
       }));
       
       return cleanEntries;
-    } catch (error) {
+  } catch {
       return rejectWithValue('Network error occurred');
     }
   }
@@ -131,7 +131,7 @@ export const fetchJournalEntry = createAsyncThunk(
       };
       
       return cleanEntry;
-    } catch (error) {
+  } catch {
       return rejectWithValue('Network error occurred');
     }
   }
@@ -173,7 +173,7 @@ export const createJournalEntry = createAsyncThunk(
       };
       
       return cleanEntry;
-    } catch (error) {
+  } catch {
       return rejectWithValue('Network error occurred');
     }
   }
@@ -215,7 +215,7 @@ export const updateJournalEntry = createAsyncThunk(
       };
       
       return cleanEntry;
-    } catch (error) {
+  } catch {
       return rejectWithValue('Network error occurred');
     }
   }
@@ -237,7 +237,7 @@ export const deleteJournalEntry = createAsyncThunk(
       }
 
       return id;
-    } catch (error) {
+  } catch {
       return rejectWithValue('Network error occurred');
     }
   }

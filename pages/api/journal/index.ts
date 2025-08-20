@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 import { withAuth, AuthenticatedRequest } from "../../../lib/auth";
 
 const prisma = new PrismaClient();
@@ -56,11 +56,7 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
         mood, 
         energyLevel, 
         tags,
-        title,
-        weather,
-        location,
-        activities,
-        goals 
+        activities
       } = req.body;
 
       if (!content || !mood) {
@@ -76,9 +72,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       }
 
       // Parse activities if it's an array of strings
-      let parsedActivities = activities;
+      // Normalize activities if it's an array of strings (future use)
       if (Array.isArray(activities)) {
-        parsedActivities = activities.filter((activity: string) => activity && activity.trim());
+        // no-op for now
       }
 
       const journalEntry = await prisma.journalEntry.create({

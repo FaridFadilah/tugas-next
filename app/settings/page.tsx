@@ -1,4 +1,4 @@
-import { User, Bell, Shield, Palette, Globe, HelpCircle } from "lucide-react";
+import { User, Bell, Shield, Palette, HelpCircle } from "lucide-react";
 
 export default function SettingsPage() {
   const settingsCategories = [

@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { withAuth, AuthenticatedRequest } from '../../../lib/auth';
 
@@ -32,20 +32,26 @@ async function journalHandler(req: AuthenticatedRequest, res: NextApiResponse) {
 
     } else if (req.method === 'POST') {
       // Create a new journal entry
-      const { content, mood, energyLevel, tags, weather, location, activities, goals } = req.body;
+      const { content, mood, energyLevel, tags } = req.body;
 
       if (!content || !mood) {
         return res.status(400).json({ error: 'Content and mood are required' });
       }
 
+      // Parse tags if it's a string
+      let parsedTags = tags;
+      if (typeof tags === 'string') {
+        parsedTags = tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag);
+      }
+
       const journalEntry = await prisma.journalEntry.create({
         data: {
-          userId: userId,
+          userId,
           content,
           mood,
-          energyLevel: energyLevel || null,
-          tags: tags || [],
-          // Add other fields as needed
+          energyLevel: energyLevel ?? 5,
+          tags: parsedTags || [],
+          updatedAt: new Date()
         },
         include: {
           user: {

@@ -24,7 +24,7 @@ export async function loginAction(formData: FormData) {
         body: JSON.stringify({ email, password }),
     });
 
-    let redirectTo = "/journal"
+  const redirectTo = "/journal";
 
     const data = await response.json();
     console.log("[LOGIN ACTION] API response:", data);

@@ -42,16 +42,18 @@ export const loginUser = createAsyncThunk(
 
       const data = await response.json();
       
-      // Store in both localStorage and cookies for compatibility
+  // Store in both localStorage and cookies for compatibility
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
       // Also store in cookies for server-side compatibility
-      document.cookie = `authToken=${encodeURIComponent(data.token)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-      document.cookie = `userData=${encodeURIComponent(JSON.stringify(data.user))}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+  document.cookie = `authToken=${encodeURIComponent(data.token)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+  // Always encode user JSON for cookie safety
+  const userJson = JSON.stringify(data.user);
+  document.cookie = `userData=${encodeURIComponent(userJson)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       
       return data;
-    } catch (error) {
+  } catch {
       return rejectWithValue('Network error occurred');
     }
   }
@@ -80,7 +82,7 @@ export const registerUser = createAsyncThunk(
       localStorage.setItem('user', JSON.stringify(data.user));
       
       return data;
-    } catch (error) {
+  } catch {
       return rejectWithValue('Network error occurred');
     }
   }
@@ -124,8 +126,8 @@ export const checkAuthStatus = createAsyncThunk('auth/checkAuthStatus', async ()
     
     console.log('[CHECK AUTH STATUS] Available cookies:', Object.keys(cookies));
     
-    token = cookies['authToken'];
-    userData = cookies['userData'];
+  token = cookies['authToken'];
+  userData = cookies['userData'];
     
     console.log('[CHECK AUTH STATUS] cookies - token:', !!token, 'userData:', !!userData);
     
@@ -133,13 +135,23 @@ export const checkAuthStatus = createAsyncThunk('auth/checkAuthStatus', async ()
     if (token && userData) {
       console.log('[CHECK AUTH STATUS] Syncing cookies to localStorage...');
       localStorage.setItem('authToken', token);
-      localStorage.setItem('user', userData);
+      // Ensure localStorage stores a proper JSON string (decoded if necessary)
+      try {
+        const decoded = decodeURIComponent(userData);
+        localStorage.setItem('user', decoded);
+      } catch {
+        localStorage.setItem('user', userData);
+      }
     }
   }
   
   if (token && userData) {
     try {
-      const parsedUser = JSON.parse(userData);
+      // userData may be URL-encoded; decode before parsing
+      const decoded = (() => {
+        try { return decodeURIComponent(userData); } catch { return userData; }
+      })();
+      const parsedUser = JSON.parse(decoded);
       console.log('[CHECK AUTH STATUS] Success - returning auth data');
       return {
         token,

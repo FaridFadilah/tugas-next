@@ -53,7 +53,7 @@ export default function ReduxLoginPage() {
         // Login successful, redirect to dashboard
         router.push('/dashboard');
       }
-    } catch (err) {
+  } catch {
       // Error handling is managed by Redux slice
     }
   };

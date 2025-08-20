@@ -1,19 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Calendar, TrendingUp, BarChart3, Download, Filter, Sparkles } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
+import { Download, Calendar, TrendingUp, BarChart3, Filter, Sparkles } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import { colorPalette, getMoodColor } from "../utils/colors";
 import { dashboardAPI } from "../utils/api";
-import { DEMO_USER_ID } from "../utils/constants";
+import { getMoodColor } from "../utils/colors";
 
 export default function SummaryPage() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedTimeRange, setSelectedTimeRange] = useState("week");
+  const [_error, _setError] = useState<string | null>(null);
+  const [selectedTimeRange, _setSelectedTimeRange] = useState("week");
 
   useEffect(() => {
     loadSummaryData();
@@ -102,7 +101,7 @@ export default function SummaryPage() {
     }
 
     // Convert API data to the format expected by the component
-    return dashboardData.dailyActivity.map((day: any, index: number) => {
+  return dashboardData.dailyActivity.map((day: any) => {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const dayOfWeek = new Date(day.date).getDay();
       
@@ -168,7 +167,7 @@ export default function SummaryPage() {
     { activity: "Goal Setting", count: 1, percentage: 5 }
   ];
 
-  console.log(moodDistribution)
+  console.log(moodDistribution);
 
   return (
     <div className="max-w-7xl mx-auto">

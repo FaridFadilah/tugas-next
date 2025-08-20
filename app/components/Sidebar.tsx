@@ -13,7 +13,7 @@ interface UserData {
 }
 
 export default function Sidebar() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const [user, setUser] = useState<UserData | null>(null);
   
   const menuItems = [
@@ -32,6 +32,7 @@ export default function Sidebar() {
   }, []);
 
   const isActive = (href: string) => {
+    if (!pathname) return false;
     if (href === "/") {
       return pathname === "/";
     }

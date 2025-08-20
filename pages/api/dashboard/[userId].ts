@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Get dashboard statistics
       const now = new Date();
       const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
       // Get total counts
       const totalJournalEntries = await prisma.journalEntry.count({

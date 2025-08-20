@@ -5,16 +5,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, Calendar, Smile } from "lucide-react";
 import { journalAPI } from "../utils/api";
-import { DEMO_USER_ID } from "../utils/constants";
 
 export default function NewJournalPageWithAPI() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // For demo purposes, using a hardcoded user ID
-  // In a real app, this would come from authentication context
-  const userId = DEMO_USER_ID; 
+  // userId is derived from the authenticated JWT on the server; no need to pass it from the client
 
   const moods = [
     { value: "excited", label: "Excited", emoji: "🤩", color: "bg-yellow-100 text-yellow-800" },
@@ -60,9 +57,8 @@ export default function NewJournalPageWithAPI() {
 
       const goals = formData.get('goals') as string;
 
-      // Create journal entry via API
-      const journalEntry = await journalAPI.createEntry({
-        userId,
+  // Create journal entry via API (userId comes from JWT on server)
+  const journalEntry = await journalAPI.createEntry({
         content,
         mood,
         energyLevel,

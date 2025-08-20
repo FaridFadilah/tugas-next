@@ -37,7 +37,7 @@ export default function NewJournalPage() {
     { value: "anxious", label: "Anxious", emoji: "😰", color: "bg-orange-100 text-orange-800" }
   ];
 
-  const currentDate = new Date().toISOString().split('T')[0];
+  // const currentDate = new Date().toISOString().split('T')[0];
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

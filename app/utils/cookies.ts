@@ -19,8 +19,15 @@ export const getCookie = (name: string): string | null => {
     while (c.charAt(0) === ' ') c = c.substring(1, c.length);
     if (c.indexOf(nameEQ) === 0) {
       const value = c.substring(nameEQ.length, c.length);
-      console.log(`[COOKIES] Found cookie ${name}: ${value}`);
-      return value;
+      // Safely decode URL-encoded cookie values; fall back to raw on failure
+      try {
+        const decoded = decodeURIComponent(value);
+        console.log(`[COOKIES] Found cookie ${name}: ${decoded}`);
+        return decoded;
+  } catch {
+        console.warn(`[COOKIES] Failed to decode cookie ${name}, using raw value`);
+        return value;
+      }
     }
   }
   console.log(`[COOKIES] Cookie ${name} not found`);
@@ -60,7 +67,11 @@ export const getAuthFromCookies = () => {
   }
   
   try {
-    const userData = JSON.parse(userDataStr);
+    // userData might be URL-encoded; decode before parsing
+    const decoded = (() => {
+      try { return decodeURIComponent(userDataStr); } catch { return userDataStr; }
+    })();
+    const userData = JSON.parse(decoded);
     return { token, user: userData };
   } catch (error) {
     console.error('Error parsing user data from cookie:', error);

@@ -6,7 +6,6 @@ import {
   fetchJournalEntries, 
   createJournalEntry, 
   deleteJournalEntry,
-  setFilters,
   clearError 
 } from "../store/slices/journalSlice";
 import { addNotification } from "../store/slices/uiSlice";
@@ -14,17 +13,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, Trash2, Search } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function JournalManager() {
   const dispatch = useAppDispatch();
   const { 
     entries, 
     isLoading, 
-    error, 
-    filters 
+    error
   } = useAppSelector((state) => state.journal);
   
   const { isAuthenticated } = useAppSelector((state) => state.auth);

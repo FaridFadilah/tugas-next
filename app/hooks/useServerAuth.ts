@@ -27,7 +27,15 @@ export async function getAuthData(): Promise<{ user: User | null; token: string 
       return { user: null, token: null };
     }
 
-    const parsedUser = JSON.parse(userData);
+    // userData may be URL-encoded (cookie-safe). Decode before parsing.
+    const decodedUser = (() => {
+      try {
+        return decodeURIComponent(userData);
+      } catch {
+        return userData;
+      }
+    })();
+    const parsedUser = JSON.parse(decodedUser);
     console.log("[SERVER AUTH] Authentication data retrieved:", { user: parsedUser, token: authToken });
     
     return { user: parsedUser, token: authToken };

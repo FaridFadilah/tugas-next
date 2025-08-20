@@ -18,7 +18,11 @@ export default function ProfilePage() {
     // Load user data from localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
-      const parsedUser = JSON.parse(userData);
+      let jsonStr = userData as string;
+      try {
+        jsonStr = decodeURIComponent(jsonStr);
+      } catch {}
+      const parsedUser = JSON.parse(jsonStr);
       setUser(parsedUser);
       setFormData({
         firstName: parsedUser.firstName || "",

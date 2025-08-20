@@ -8,24 +8,22 @@ export default function SimpleAuthTest() {
   const dispatch = useAppDispatch();
   const authState = useAppSelector(state => state.auth);
 
+  // Log state and storage whenever authState changes
   useEffect(() => {
     console.log('=== SIMPLE AUTH TEST ===');
     console.log('Current auth state:', authState);
-    
-    // Check localStorage
     const token = localStorage.getItem('authToken');
     const userData = localStorage.getItem('user');
     console.log('localStorage - token exists:', !!token);
     console.log('localStorage - user exists:', !!userData);
-    
-    // Check cookies
-    const cookies = document.cookie;
-    console.log('All cookies:', cookies);
-    
-    // Dispatch check
+    console.log('All cookies:', document.cookie);
+  }, [authState]);
+
+  // Trigger a check once on mount
+  useEffect(() => {
     console.log('Dispatching checkAuthStatus...');
     dispatch(checkAuthStatus());
-  }, []);
+  }, [dispatch]);
 
   return (
     <div className="max-w-md mx-auto mt-8 p-4 border rounded">

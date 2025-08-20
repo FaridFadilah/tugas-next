@@ -2,20 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { BookOpen, BarChart3, Clock, Plus, Calendar, TrendingUp, Sparkles, Activity } from "lucide-react";
-import { colorPalette, getActivityColor } from "./utils/colors";
+import { BookOpen, Clock, Plus, TrendingUp, Sparkles, Activity } from "lucide-react";
+import { colorPalette } from "./utils/colors";
 import { dashboardAPI } from "./utils/api";
-import { DEMO_USER_ID } from "./utils/constants";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 
 export default function Dashboard() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, _setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDashboardData();

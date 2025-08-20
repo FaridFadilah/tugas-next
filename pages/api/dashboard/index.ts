@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
 import { withAuth, AuthenticatedRequest } from '../../../lib/auth';
 
@@ -16,7 +16,7 @@ async function dashboardHandler(req: AuthenticatedRequest, res: NextApiResponse)
       // Get dashboard statistics
       const now = new Date();
       const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
       // Get total counts
       const totalJournalEntries = await prisma.journalEntry.count({

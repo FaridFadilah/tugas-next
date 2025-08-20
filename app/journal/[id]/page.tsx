@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Calendar, MapPin, Share2, Edit3, Trash2, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { 
@@ -17,12 +17,13 @@ import {
 import { useRouter } from "next/navigation";
 
 interface Props {
-  params: {
-    id: string;
-  };
+  // In Next.js 15+ with React 19, params is a Promise and should be unwrapped with React.use()
+  params: Promise<{ id: string }>; // keep it explicit to satisfy PageProps
 }
 
 export default function JournalDetailPage({ params }: Props) {
+  // Unwrap the async params
+  const { id } = use(params);
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { 
@@ -33,15 +34,15 @@ export default function JournalDetailPage({ params }: Props) {
   const { isAuthenticated } = useAppSelector(state => state.auth);
 
   useEffect(() => {
-    if (isAuthenticated && params.id) {
-      dispatch(fetchJournalEntry(params.id));
+    if (isAuthenticated && id) {
+      dispatch(fetchJournalEntry(id));
     }
 
     // Cleanup function to clear current entry when component unmounts
     return () => {
       dispatch(setCurrentEntry(null));
     };
-  }, [dispatch, params.id, isAuthenticated]);
+  }, [dispatch, id, isAuthenticated]);
 
   useEffect(() => {
     if (error) {
@@ -129,7 +130,7 @@ export default function JournalDetailPage({ params }: Props) {
             <span>{error}</span>
             <div className="flex gap-2">
               <Button 
-                onClick={() => dispatch(fetchJournalEntry(params.id))}
+                onClick={() => dispatch(fetchJournalEntry(id))}
                 size="sm"
                 variant="outline"
               >
