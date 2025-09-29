@@ -21,6 +21,7 @@ import {
   deleteJournalEntry,
   clearError 
 } from "../store/slices/journalSlice";
+import { JournalEntry } from "../types";
 
 export default function JournalPage() {
   const dispatch = useAppDispatch();
@@ -64,7 +65,7 @@ export default function JournalPage() {
   };
 
   // Filter entries based on search term, mood, and date
-  const filteredEntries = journalEntries.filter((entry: any) => {
+  const filteredEntries = journalEntries.filter((entry: JournalEntry) => {
     const matchesSearch = entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          entry.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesMood = !selectedMood || selectedMood === "all" || entry.mood === selectedMood;
@@ -200,7 +201,7 @@ export default function JournalPage() {
 
       {/* Journal Entries */}
       <div className="space-y-6">
-        {filteredEntries.map((entry: any) => (
+        {filteredEntries.map((entry: JournalEntry) => (
           <Card key={entry.id}>
             <CardHeader>
               <div className="flex justify-between items-start">

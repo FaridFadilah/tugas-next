@@ -61,7 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(404).json({ error: "User not found" });
       }
 
-      const updateData: any = {};
+      const updateData: { [key: string]: string | boolean | number | Date | null | undefined } = {};
 
       if (name) updateData.name = name;
       if (email) updateData.email = email;
@@ -112,9 +112,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
       res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("User profile API error:", error);
-    if (error.code === 'P2025') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') {
       return res.status(404).json({ error: "User not found" });
     }
     res.status(500).json({ error: "Internal server error" });

@@ -75,8 +75,9 @@ export default function NewJournalPageWithAPI() {
       // Redirect to journal list or show success message
       router.push('/journal');
       
-    } catch (err: any) {
-      setError(err.message || 'Failed to create journal entry');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create journal entry';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

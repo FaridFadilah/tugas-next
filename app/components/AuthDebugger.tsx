@@ -5,8 +5,8 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { checkAuthStatus } from "../store/slices/authSlice";
 
 export default function AuthDebugger() {
-  const [localStorageData, setLocalStorageData] = useState<any>(null);
-  const [cookieData, setCookieData] = useState<any>(null);
+  const [localStorageData, setLocalStorageData] = useState<Record<string, string> | null>(null);
+  const [cookieData, setCookieData] = useState<Record<string, string> | null>(null);
   const dispatch = useAppDispatch();
   const authState = useAppSelector(state => state.auth);
 
@@ -16,8 +16,8 @@ export default function AuthDebugger() {
     const userData = localStorage.getItem('user');
     
     setLocalStorageData({
-      token: token ? token.substring(0, 20) + '...' : null,
-      user: userData ? JSON.parse(userData) : null
+      token: token ? token.substring(0, 20) + '...' : 'null',
+      user: userData ? JSON.parse(userData) : 'null'
     });
 
     // Check cookies
@@ -25,7 +25,7 @@ export default function AuthDebugger() {
       const [name, value] = cookie.trim().split('=');
       acc[name] = value;
       return acc;
-    }, {} as any);
+    }, {} as Record<string, string>);
     
     setCookieData(cookies);
 

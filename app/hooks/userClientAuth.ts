@@ -4,7 +4,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { setAuthCookies, clearAuthCookies, getAuthFromCookies } from '../utils/cookies';
-import { User } from './useServerAuth';
+import { User } from '../types';
 
 export function useClientAuth() {
   const [user, setUser] = useState<User | null>(null);

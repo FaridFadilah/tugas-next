@@ -107,9 +107,9 @@ async function handler(req: AuthenticatedRequest, res: NextApiResponse) {
       res.setHeader("Allow", ["GET", "PUT", "DELETE"]);
       res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Journal entry API error:", error);
-    if (error.code === 'P2025') {
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') {
       return res.status(404).json({ error: "Journal entry not found" });
     }
     res.status(500).json({ error: "Internal server error" });

@@ -2,6 +2,7 @@
 import { store, RootState } from '../store/store';
 import { addNotification } from '../store/slices/uiSlice';
 import { clearCredentials } from '../store/slices/authSlice';
+import { JournalEntry, User, CreateJournalEntry, CreateUser, Reminder, Summary, CreateReminder, CreateSummary } from '../types';
 
 const API_BASE_URL = '/api';
 
@@ -80,7 +81,7 @@ export const journalAPI = {
   },
 
   // Update a journal entry
-  updateEntry: async (id: string, entryData: any) => {
+  updateEntry: async (id: string, entryData: Partial<JournalEntry>) => {
     const response = await fetch(`${API_BASE_URL}/journal/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -102,7 +103,7 @@ export const journalAPI = {
 // User API functions
 export const userAPI = {
   // Create a new user
-  createUser: async (userData: any) => {
+  createUser: async (userData: CreateUser) => {
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -120,7 +121,7 @@ export const userAPI = {
   },
 
   // Update user
-  updateUser: async (id: string, userData: any) => {
+  updateUser: async (id: string, userData: Partial<User>) => {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
@@ -150,7 +151,7 @@ export const reminderAPI = {
   },
 
   // Create a reminder
-  createReminder: async (reminderData: any) => {
+  createReminder: async (reminderData: CreateReminder) => {
     const response = await fetch(`${API_BASE_URL}/reminders`, {
       method: 'POST',
       headers: getAuthHeaders(),
@@ -171,7 +172,7 @@ export const summaryAPI = {
   },
 
   // Create a summary
-  createSummary: async (summaryData: any) => {
+  createSummary: async (summaryData: CreateSummary) => {
     const response = await fetch(`${API_BASE_URL}/summaries`, {
       method: 'POST',
       headers: getAuthHeaders(),

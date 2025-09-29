@@ -1,4 +1,6 @@
 // Cookie utility functions
+import { User } from '../types';
+
 export const setCookie = (name: string, value: string, days: number = 7) => {
   const expires = new Date();
   expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
@@ -39,7 +41,7 @@ export const deleteCookie = (name: string) => {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/`;
 };
 
-export const setAuthCookies = (token: string, user: any) => {
+export const setAuthCookies = (token: string, user: User) => {
   console.log(`[COOKIES] Setting auth cookies - token: ${token}, user:`, user);
   setCookie('authToken', token, 7); // 7 days
   setCookie('userData', JSON.stringify(user), 7); // 7 days

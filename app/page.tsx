@@ -7,9 +7,10 @@ import { colorPalette } from "./utils/colors";
 import { dashboardAPI } from "./utils/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DashboardData, JournalEntry, StatCard, RecentEntry } from "./types";
 
 export default function Dashboard() {
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [_error, _setError] = useState<string | null>(null);
 
@@ -22,9 +23,10 @@ export default function Dashboard() {
       setIsLoading(true);
       const data = await dashboardAPI.getDashboard();
       setDashboardData(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If API fails, use mock data as fallback
-      console.warn('Dashboard API failed, using mock data:', err.message);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.warn('Dashboard API failed, using mock data:', errorMessage);
       setDashboardData({
         totalStats: {
           journalEntries: 12,
@@ -129,7 +131,7 @@ export default function Dashboard() {
       ];
     }
 
-    return dashboardData.recentJournalEntries.map((entry: any) => ({
+    return dashboardData.recentJournalEntries.map((entry: JournalEntry) => ({
       title: entry.content.substring(0, 50) + (entry.content.length > 50 ? '...' : ''),
       date: new Date(entry.createdAt).toLocaleDateString(),
       type: "journal",
@@ -162,7 +164,7 @@ export default function Dashboard() {
 
       {/* Enhanced Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {stats.map((stat: any) => (
+        {stats.map((stat: StatCard) => (
           <Card key={stat.name} className="group relative overflow-hidden hover:shadow-lg transition-all duration-300 hover:scale-105">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-10">
@@ -251,7 +253,7 @@ export default function Dashboard() {
           <Card className="overflow-hidden">
             <CardContent className="p-6">
               <ul className="space-y-4">
-                {recentEntries.map((entry: any, index: number) => (
+                {recentEntries.map((entry: RecentEntry, index: number) => (
                   <li key={index} className="group">
                     <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                       {/* Icon */}

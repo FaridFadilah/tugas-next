@@ -1,20 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-
-export interface JournalEntry {
-  id: string;
-  title?: string;
-  content: string;
-  mood: string;
-  energyLevel?: number;
-  tags?: string[];
-  weather?: string;
-  location?: string;
-  activities?: string[];
-  goals?: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
-}
+import { JournalEntry } from '../../types';
 
 interface JournalState {
   entries: JournalEntry[];
@@ -74,7 +59,7 @@ export const fetchJournalEntries = createAsyncThunk(
       const entries = Array.isArray(data) ? data : (data.entries || []);
       
       // Clean data to ensure serializability
-      const cleanEntries = entries.map((entry: any) => ({
+      const cleanEntries = entries.map((entry: JournalEntry) => ({
         id: entry.id,
         title: entry.title || null,
         content: entry.content || '',

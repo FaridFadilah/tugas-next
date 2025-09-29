@@ -115,8 +115,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           reminders: weeklyReminders
         },
         recentJournalEntries,
-        moodDistribution: moodStats.map((stat: any) => ({
-          mood: stat.mood,
+        moodDistribution: moodStats.map((stat: { mood: string | null; _count: { mood: number } }) => ({
+          mood: stat.mood || 'unknown',
           count: stat._count.mood
         })),
         dailyActivity
@@ -128,7 +128,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader("Allow", ["GET"]);
       res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Dashboard API error:", error);
     res.status(500).json({ error: "Internal server error" });
   } finally {

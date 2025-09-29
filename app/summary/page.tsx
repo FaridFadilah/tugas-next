@@ -7,9 +7,10 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { dashboardAPI } from "../utils/api";
 import { getMoodColor } from "../utils/colors";
+import { DashboardData, MoodDistribution, DailyActivity } from "../types";
 
 export default function SummaryPage() {
-  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [_error, _setError] = useState<string | null>(null);
   const [selectedTimeRange, _setSelectedTimeRange] = useState("week");
@@ -23,9 +24,10 @@ export default function SummaryPage() {
       setIsLoading(true);
       const data = await dashboardAPI.getDashboard();
       setDashboardData(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If API fails, use mock data as fallback
-      console.warn('Summary API failed, using mock data:', err.message);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      console.warn('Summary API failed, using mock data:', errorMessage);
       setDashboardData({
         totalStats: {
           journalEntries: 12,
@@ -36,6 +38,7 @@ export default function SummaryPage() {
           journalEntries: 5,
           reminders: 3
         },
+        recentJournalEntries: [],
         moodDistribution: [
           { mood: "Productive", count: 8 },
           { mood: "Focused", count: 6 },
@@ -101,7 +104,7 @@ export default function SummaryPage() {
     }
 
     // Convert API data to the format expected by the component
-  return dashboardData.dailyActivity.map((day: any) => {
+    return dashboardData.dailyActivity.map((day: DailyActivity) => {
       const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
       const dayOfWeek = new Date(day.date).getDay();
       
@@ -152,7 +155,7 @@ export default function SummaryPage() {
     return moodIcons[mood] || '😊';
   };
 
-  const moodDistribution = (dashboardData?.moodDistribution || []).map((mood: any) => ({
+  const moodDistribution = (dashboardData?.moodDistribution || []).map((mood: MoodDistribution) => ({
     ...mood,
     icon: getMoodIcon(mood.mood),
     percentage: Math.round((mood.count / (dashboardData?.totalStats?.journalEntries || 1)) * 100)
@@ -270,7 +273,7 @@ export default function SummaryPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {dailyActivity.map((day: any) => (
+              {dailyActivity.map((day: { day: string; entries: number; reminders: number; mood: string }) => (
                 <div key={day.day} className="flex items-center gap-4">
                   <div className="w-12 text-sm font-medium text-muted-foreground">{day.day}</div>
                   <div className="flex-1 flex gap-2">
@@ -331,7 +334,7 @@ export default function SummaryPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {moodDistribution.map((mood: any) => {
+            {moodDistribution.map((mood: MoodDistribution & { icon?: string; percentage?: number }) => {
               const moodColor = getMoodColor(mood.mood);
               return (
                 <div key={mood.mood} className="group relative">
@@ -377,19 +380,19 @@ export default function SummaryPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
               <span className="text-2xl font-bold">
-                {moodDistribution.reduce((sum: number, mood: any) => sum + mood.count, 0)}
+                {moodDistribution.reduce((sum: number, mood: MoodDistribution) => sum + mood.count, 0)}
               </span>
               <p className="text-sm text-muted-foreground">Total Entries</p>
             </div>
             <div>
               <span className="text-2xl font-bold text-emerald-600">
-                {moodDistribution[0].mood}
+                {moodDistribution[0]?.mood || 'N/A'}
               </span>
               <p className="text-sm text-muted-foreground">Top Mood</p>
             </div>
             <div>
               <span className="text-2xl font-bold text-blue-600">
-                {Math.round(moodDistribution.reduce((sum: number, mood: any) => sum + mood.count, 0) / 7)}
+                {Math.round(moodDistribution.reduce((sum: number, mood: MoodDistribution) => sum + mood.count, 0) / 7)}
               </span>
               <p className="text-sm text-muted-foreground">Daily Average</p>
             </div>

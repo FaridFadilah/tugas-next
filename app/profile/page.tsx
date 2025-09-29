@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Mail, Calendar, Shield, Camera, Save, Edit3 } from "lucide-react";
+import { User as UserIcon, Mail, Calendar, Shield, Camera, Save, Edit3 } from "lucide-react";
+import { User } from '../types';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -36,7 +37,11 @@ export default function ProfilePage() {
 
   const handleSave = () => {
     // Update user data in localStorage
-    const updatedUser = {
+    const updatedUser: User = {
+      id: user?.id || "1", // Ensure required id is present
+      fullName: `${formData.firstName} ${formData.lastName}`,
+      createdAt: user?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       ...user,
       ...formData
     };
@@ -81,7 +86,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <div className="w-24 h-24 bg-white dark:bg-gray-100 rounded-full flex items-center justify-center">
-                <User className="w-12 h-12 text-gray-400 dark:text-gray-600" />
+                <UserIcon className="w-12 h-12 text-gray-400 dark:text-gray-600" />
               </div>
               <button className="absolute -bottom-2 -right-2 bg-white dark:bg-gray-100 rounded-full p-2 shadow-md hover:shadow-lg transition-shadow">
                 <Camera className="w-4 h-4 text-gray-600 dark:text-gray-700" />
@@ -137,7 +142,7 @@ export default function ProfilePage() {
             {/* Personal Information */}
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <User className="w-5 h-5" />
+                <UserIcon className="w-5 h-5" />
                 Personal Information
               </h3>
               

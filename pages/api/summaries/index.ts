@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.setHeader("Allow", ["GET", "POST"]);
       res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AI Summaries API error:", error);
     res.status(500).json({ error: "Internal server error" });
   } finally {

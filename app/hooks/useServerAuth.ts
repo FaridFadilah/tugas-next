@@ -2,14 +2,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  firstName?: string;
-  lastName?: string;
-}
+import { User } from '../types';
 
 // Get authentication data from server-side cookies
 export async function getAuthData(): Promise<{ user: User | null; token: string | null }> {

@@ -85,9 +85,10 @@ export default function RegisterPage() {
       // Redirect to dashboard
       router.push("/");
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Registration error:", error);
-      setError(error.message || "Registration failed. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Registration failed. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
